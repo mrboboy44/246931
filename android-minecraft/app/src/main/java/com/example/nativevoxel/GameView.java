@@ -230,7 +230,7 @@ public class GameView extends GLSurfaceView {
         }
 
         @Override
-        public void onSurfaceCreated(javax.microedition.khronos.egl.EGLConfig config) {
+        public void onSurfaceCreated(javax.microedition.khronos.opengles.GL10 gl, javax.microedition.khronos.egl.EGLConfig config) {
             GLES20.glClearColor(0.47f, 0.73f, 0.94f, 1f);
             GLES20.glEnable(GLES20.GL_DEPTH_TEST);
             program = buildProgram(VERTEX_SHADER, FRAGMENT_SHADER);
