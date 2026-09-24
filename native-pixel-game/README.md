@@ -9,3 +9,6 @@ References:
 - Pinterest level-map references were used only for general layout inspiration.
 
 No Nintendo/Mario game assets, sounds, or artwork are redistributed.
+
+
+Build pipeline: Android SDK tersedia dari runner; debug APK is produced by GitHub Actions.
