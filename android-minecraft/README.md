@@ -14,3 +14,5 @@ Asset sources:
 - CC0 Kenney mobile controls: https://opengameart.org/content/mobile-controls
 
 The source uses the assets by downloading the published packs at first launch, then extracting and caching them locally.
+
+Build automation is configured in .github/workflows/native-android.yml; the workflow produces app-debug.apk when GitHub Actions is enabled.
