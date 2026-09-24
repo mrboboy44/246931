@@ -52,7 +52,7 @@ public class GameView extends View {
 
     private void update(float dt){
         player.vx=(right?SPEED:0)-(left?SPEED:0);
-        if(jump && player.onGround && !player.jumpHeld){player.vy=JUMP;player.onGround=false;player.jumpHeld=true;sfx(650,960,0.15);}
+        if(jump && player.onGround && !player.jumpHeld){player.vy=JUMP;player.onGround=false;player.jumpHeld=true;sfx(650,960,0.15f);}
         if(!jump)player.jumpHeld=false;
         player.vy+=GRAV*dt;player.x+=player.vx*dt;player.y+=player.vy*dt;player.onGround=false;
         float ground=468;
@@ -61,8 +61,8 @@ public class GameView extends View {
         for(float[] q:plats){if(player.x+player.w>q[0]&&player.x<q[2]&&player.y+player.h>q[1]&&player.y+player.h<q[3]+18&&player.vy>=0){player.y=q[1]-player.h;player.vy=0;player.onGround=true;}}
         if(player.y>620){lives--; if(lives<=0)state=3;else resetPlayer();}
         float[][] cs={{430,360},{610,395},{910,335},{1140,375},{1410,295},{1710,420},{1950,340},{2250,385},{2780,305},{3560,350},{3840,380},{4320,275}};
-        for(int i=0;i<cs.length;i++)if(!player.coinGot[i]&&dist(player.x+16,player.y+18,cs[i][0],cs[i][1])<34){player.coinGot[i]=true;coins++;score+=100;sfx(880,1320,0.11);}
-        for(Enemy e:enemies){if(!e.alive)continue;e.x+=e.vx*dt;if(e.x<e.min)e.vx=Math.abs(e.vx);if(e.x>e.max)e.vx=-Math.abs(e.vx);e.anim+=dt;if(intersects(player.x,player.y,player.w,player.h,e.x,e.y,32,32)){if(player.vy>180){e.alive=false;player.vy=-350;score+=250;sfx(150,100,0.10);}else{lives--;if(lives<=0)state=3;else resetPlayer();}}}
+        for(int i=0;i<cs.length;i++)if(!player.coinGot[i]&&dist(player.x+16,player.y+18,cs[i][0],cs[i][1])<34){player.coinGot[i]=true;coins++;score+=100;sfx(880,1320,0.11f);}
+        for(Enemy e:enemies){if(!e.alive)continue;e.x+=e.vx*dt;if(e.x<e.min)e.vx=Math.abs(e.vx);if(e.x>e.max)e.vx=-Math.abs(e.vx);e.anim+=dt;if(intersects(player.x,player.y,player.w,player.h,e.x,e.y,32,32)){if(player.vy>180){e.alive=false;player.vy=-350;score+=250;sfx(150,100,0.10f);}else{lives--;if(lives<=0)state=3;else resetPlayer();}}}
         player.anim+=dt*(player.vx==0?2.5f:10f); float target=player.x-300;camX+=(Math.max(0,Math.min(4020,target))-camX)*Math.min(1,dt*5f);if(player.x>4550)state=2;
     }
 
