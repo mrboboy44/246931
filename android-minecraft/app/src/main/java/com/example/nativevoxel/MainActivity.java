@@ -3,6 +3,8 @@ package com.example.nativevoxel;
 import android.app.Activity;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.AudioAttributes;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
@@ -12,8 +14,6 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import java.io.File;
 
 public class MainActivity extends Activity {
     private GameView gameView;
@@ -25,7 +25,12 @@ public class MainActivity extends Activity {
     private Button quit;
     private Button jump;
     private Button back;
+
+    private SoundPool soundPool;
+    private int clickSound = 0;
+    private int confirmSound = 0;
     private boolean assetsReady = false;
+    private int sensitivityLabel = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +38,15 @@ public class MainActivity extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         hideSystemBars();
+
+        AudioAttributes audio = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_GAME)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build();
+        soundPool = new SoundPool.Builder()
+                .setAudioAttributes(audio)
+                .setMaxStreams(4)
+                .build();
 
         FrameLayout root = new FrameLayout(this);
         gameView = new GameView(this);
@@ -48,9 +62,7 @@ public class MainActivity extends Activity {
         setContentView(root);
 
         status.setText("DOWNLOADING CC0 ASSETS…");
-        play.setEnabled(false);
-        settings.setEnabled(false);
-        quit.setEnabled(false);
+        setButtonsEnabled(false);
 
         AssetLoader.prepare(this, () -> runOnUiThread(this::onAssetsReady),
                 error -> runOnUiThread(() -> {
@@ -62,6 +74,14 @@ public class MainActivity extends Activity {
     private void onAssetsReady() {
         assetsReady = true;
         gameView.refreshAssets();
+
+        if (AssetLoader.click != null && AssetLoader.click.isFile()) {
+            clickSound = soundPool.load(AssetLoader.click.getAbsolutePath(), 1);
+        }
+        if (AssetLoader.confirm != null && AssetLoader.confirm.isFile()) {
+            confirmSound = soundPool.load(AssetLoader.confirm.getAbsolutePath(), 1);
+        }
+
         status.setText("CC0 ASSETS READY");
         status.setTextColor(Color.WHITE);
         styleButton(play);
@@ -69,11 +89,22 @@ public class MainActivity extends Activity {
         styleButton(quit);
         styleButton(jump);
         styleButton(back);
-        play.setEnabled(true);
-        settings.setEnabled(true);
-        quit.setEnabled(true);
-        jump.setEnabled(true);
-        back.setEnabled(true);
+        setButtonsEnabled(true);
+    }
+
+    private void setButtonsEnabled(boolean enabled) {
+        if (play != null) play.setEnabled(enabled);
+        if (settings != null) settings.setEnabled(enabled);
+        if (quit != null) quit.setEnabled(enabled);
+        if (jump != null) jump.setEnabled(enabled);
+        if (back != null) back.setEnabled(enabled);
+    }
+
+    private void playClick(boolean confirm) {
+        int id = confirm && confirmSound != 0 ? confirmSound : clickSound;
+        if (id != 0 && soundPool != null) {
+            soundPool.play(id, 0.75f, 0.75f, 1, 0, 1f);
+        }
     }
 
     private LinearLayout buildMenu() {
@@ -103,6 +134,7 @@ public class MainActivity extends Activity {
         status.setTextColor(Color.WHITE);
         status.setTextSize(11);
         status.setGravity(Gravity.CENTER);
+        status.setShadowLayer(4f, 2f, 2f, Color.BLACK);
         box.addView(status, new LinearLayout.LayoutParams(-1, dp(30)));
 
         play = button("PLAY");
@@ -114,17 +146,25 @@ public class MainActivity extends Activity {
 
         play.setOnClickListener(v -> {
             if (!assetsReady) return;
+            playClick(true);
             menu.setVisibility(View.GONE);
             hud.setVisibility(View.VISIBLE);
             gameView.getWorldRenderer().setPlaying(true);
         });
 
         settings.setOnClickListener(v -> {
+            playClick(false);
             gameView.getWorldRenderer().toggleSensitivity();
-            status.setText("CAMERA SENSITIVITY TOGGLED");
+            sensitivityLabel++;
+            if (sensitivityLabel > 3) sensitivityLabel = 1;
+            status.setText("CAMERA SENSITIVITY " + sensitivityLabel + "/3");
         });
 
-        quit.setOnClickListener(v -> finish());
+        quit.setOnClickListener(v -> {
+            playClick(false);
+            finish();
+        });
+
         return box;
     }
 
@@ -144,11 +184,16 @@ public class MainActivity extends Activity {
         overlay.addView(bottom, new LinearLayout.LayoutParams(-1, dp(84)));
 
         back.setOnClickListener(v -> {
+            playClick(false);
             gameView.getWorldRenderer().setPlaying(false);
             hud.setVisibility(View.GONE);
             menu.setVisibility(View.VISIBLE);
         });
-        jump.setOnClickListener(v -> gameView.getWorldRenderer().jumpPressed());
+
+        jump.setOnClickListener(v -> {
+            playClick(false);
+            gameView.getWorldRenderer().jumpPressed();
+        });
 
         TextView hint = new TextView(this);
         hint.setText("LEFT SIDE: MOVE    RIGHT SIDE: LOOK");
@@ -209,6 +254,12 @@ public class MainActivity extends Activity {
                         | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                         | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (soundPool != null) soundPool.release();
+        super.onDestroy();
     }
 
     @Override
