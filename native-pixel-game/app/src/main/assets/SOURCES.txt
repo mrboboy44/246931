@@ -1,0 +1,5 @@
+REFERENCE SOURCES (not redistributed):
+- Kenney Platformer Art Pixel — CC0, used as a visual/reference source for generic pixel platformer conventions.
+- Pinterest pins for Super Mario-style world maps were reviewed only as level-layout references; no Pinterest image is embedded.
+SHIPPED ASSETS:
+- Pixel art characters, terrain, UI and sound effects are generated directly by this project at runtime.
